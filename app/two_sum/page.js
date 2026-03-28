@@ -1,60 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef, useLayoutEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-
-function ConnectorBeam({ fromRef, toRef, active, color = "#818cf8" }) {
-  const [coords, setCoords] = useState(null);
-  const svgRef = useRef(null);
-
-  useLayoutEffect(() => {
-    if (!active || !fromRef.current || !toRef.current) { setCoords(null); return; }
-    const update = () => {
-      const from = fromRef.current.getBoundingClientRect();
-      const to = toRef.current.getBoundingClientRect();
-      setCoords({
-        x1: from.right,
-        y1: from.top + from.height / 2,
-        x2: to.left,
-        y2: to.top + to.height / 2,
-      });
-    };
-    update();
-    window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
-  }, [active, fromRef, toRef]);
-
-  if (!coords) return null;
-  const { x1, y1, x2, y2 } = coords;
-  const cx1 = x1 + (x2 - x1) * 0.5;
-  const cx2 = x2 - (x2 - x1) * 0.5;
-
-  return (
-    <svg
-      style={{ position: "fixed", inset: 0, width: "100vw", height: "100vh", pointerEvents: "none", zIndex: 50 }}
-    >
-      <motion.path
-        d={`M${x1},${y1} C${cx1},${y1} ${cx2},${y2} ${x2},${y2}`}
-        fill="none"
-        stroke={color}
-        strokeWidth="2"
-        strokeDasharray="6 4"
-        initial={{ pathLength: 0, opacity: 0 }}
-        animate={{ pathLength: 1, opacity: 0.6 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.45, ease: "easeOut" }}
-      />
-      <motion.circle
-        cx={x2} cy={y2} r={4}
-        fill={color}
-        initial={{ scale: 0, opacity: 0 }}
-        animate={{ scale: 1, opacity: 0.8 }}
-        transition={{ delay: 0.35, duration: 0.2 }}
-      />
-    </svg>
-  );
-}
 
 const nums = [3, 2, 4, 6, 11, 7];
 const target = 9;
@@ -257,10 +205,7 @@ export default function TwoSumPage() {
   const [speed, setSpeed] = useState(1800);
   const [missFlash, setMissFlash] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
-  const [showBeam, setShowBeam] = useState(false);
   const intervalRef = useRef(null);
-  const activeLineRef = useRef(null);
-  const vizTargetRef = useRef(null);
 
   const currentStep = steps[stepIndex];
   const isFirst = stepIndex === 0;
@@ -304,13 +249,6 @@ export default function TwoSumPage() {
       return () => clearTimeout(t);
     }
   }, [isSolved]);
-
-  // Beam: flash on every step change
-  useEffect(() => {
-    setShowBeam(true);
-    const t = setTimeout(() => setShowBeam(false), 700);
-    return () => clearTimeout(t);
-  }, [stepIndex]);
 
   const goNext = () => { if (stepIndex < steps.length - 1) setStepIndex((p) => p + 1); };
   const goPrev = () => { setPlaying(false); setStepIndex((p) => Math.max(p - 1, 0)); };
@@ -364,7 +302,6 @@ export default function TwoSumPage() {
                 return (
                   <motion.div
                     key={index}
-                    ref={isActive ? activeLineRef : null}
                     animate={{ backgroundColor: isActive ? "#eef2ff" : "transparent" }}
                     transition={{ duration: 0.2 }}
                     className={`flex items-center gap-3 px-3 py-[9px] rounded-xl border ${isActive ? "border-indigo-200" : "border-transparent"}`}
@@ -400,12 +337,9 @@ export default function TwoSumPage() {
           {/* ── Visualization Panel ── */}
           <section className="relative rounded-2xl border border-slate-200 bg-white shadow-sm p-6 flex flex-col gap-5 overflow-hidden">
             <Confetti active={showConfetti} />
-            <AnimatePresence>
-              {showBeam && <ConnectorBeam fromRef={activeLineRef} toRef={vizTargetRef} active={showBeam} color={isSolved ? "#10b981" : missFlash ? "#f87171" : "#818cf8"} />}
-            </AnimatePresence>
 
             {/* Array */}
-            <div ref={vizTargetRef}>
+            <div>
               <p className="text-xs font-bold text-slate-300 uppercase tracking-widest mb-3">Array · target = {target}</p>
               <div className="flex gap-2.5 flex-wrap">
                 {nums.map((num, index) => {
@@ -479,15 +413,9 @@ export default function TwoSumPage() {
                       <motion.div
                         key={entry.key}
                         initial={{ opacity: 0, scale: 0.7, y: 10 }}
-                        animate={entry.hit
-                          ? { opacity: 1, scale: [1, 1.06, 1], y: 0, boxShadow: ["0 0 0 0 rgba(16,185,129,0)", "0 0 0 8px rgba(16,185,129,0.15)", "0 0 0 0 rgba(16,185,129,0)"] }
-                          : { opacity: 1, scale: 1, y: 0 }
-                        }
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.7 }}
-                        transition={entry.hit
-                          ? { duration: 0.7, ease: "easeOut", repeat: Infinity, repeatDelay: 0.5 }
-                          : { type: "spring", stiffness: 320, damping: 20 }
-                        }
+                        transition={{ type: "spring", stiffness: 320, damping: 20 }}
                         className={`rounded-xl border flex flex-col items-center px-4 py-2 min-w-[60px] ${
                           entry.hit
                             ? "bg-emerald-50 border-emerald-300"
