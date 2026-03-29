@@ -202,7 +202,7 @@ function Confetti({ active }) {
 export default function TwoSumPage() {
   const [stepIndex, setStepIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
-  const [speed, setSpeed] = useState(1800);
+  const [speed, setSpeed] = useState(2300);
   const [missFlash, setMissFlash] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const intervalRef = useRef(null);

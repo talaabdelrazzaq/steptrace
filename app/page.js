@@ -37,10 +37,7 @@ export default function Home() {
           step by step
         </h1>
  
-        <p className="text-base text-slate-500 mb-10 max-w-xl leading-relaxed">
-          Interactive visual walkthroughs for common coding interview problems.
-          Watch the algorithm think — one step at a time.
-        </p>
+        <p className="text-base text-slate-500 mb-10 max-w-xl leading-relaxed"> Don't guess what the code does. Pick an algorithm, hit Play, and watch every decision happen live.</p>
  
         <div className="space-y-3 mb-8">
           <label className="block text-sm font-medium text-slate-500">
